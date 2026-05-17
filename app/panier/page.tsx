@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, Loader2, CheckCircle } from 'lucide-react'
 import { useCartStore } from '@/lib/cart-store'
-import { API_ENDPOINTS, formatPrice } from '@/lib/api'
+import { api, formatPrice } from '@/lib/api'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
@@ -44,36 +44,35 @@ export default function PanierPage() {
 
     setLoading(true)
     try {
-      const response = await fetch(API_ENDPOINTS.commandes, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nom_complet: formData.nom_complet,
-          telephone: formData.telephone,
-          email: formData.email,
-          adresse: formData.adresse,
-          adresse_livraison: formData.adresse,
-          notes: formData.notes,
-          mode_reception: formData.mode_reception,
-          produits: items.map(item => ({
-            id: item.produit.id,
-            quantite: item.quantite,
-          })),
-        }),
+      const data = await api.createCommande({
+        nom_complet: formData.nom_complet,
+        telephone: formData.telephone,
+        email: formData.email,
+        adresse: formData.adresse,
+        adresse_livraison: formData.adresse,
+        notes: formData.notes,
+        mode_reception: formData.mode_reception,
+        montant_total: total,
+        produits: items.map(item => ({
+          produit_id: item.produit.id,
+          nom: item.produit.nom,
+          image: item.produit.image,
+          quantite: item.quantite,
+          prix_unitaire: item.produit.prix_promo || item.produit.prix,
+        })),
       })
 
-      const data = await response.json()
-
-      if (response.ok && data.success) {
+      if (data.success) {
         setCodeSecret(data.code_secret)
-        setCommandeId(data.commande_id)
+        setCommandeId(data.data?.id || null)
         clearCart()
         setStep(3)
       } else {
-        alert(data.error || 'Erreur lors de la création de la commande. Vérifiez que XAMPP est actif.')
+        alert(data.error || 'Erreur lors de la création de la commande.')
       }
-    } catch {
-      alert('Impossible de contacter le serveur. Vérifiez que XAMPP est démarré et que la base de données est configurée.')
+    } catch (error) {
+      console.error('[v0] Error creating order:', error)
+      alert('Impossible de créer la commande. Veuillez réessayer.')
     } finally {
       setLoading(false)
     }

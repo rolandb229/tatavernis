@@ -10,41 +10,34 @@ import {
 import { api, formatPrice, STATUT_LABELS, STATUT_COLORS } from '@/lib/api'
 import type { Stats } from '@/lib/types'
 
-// Données de démo si le backend est inaccessible
-const DEMO_STATS: Stats = {
-  visiteurs: { total_30_jours: 1250, aujourdhui: 42 },
+// Données par défaut pendant le chargement
+const DEFAULT_STATS: Stats = {
+  visiteurs: { total_30_jours: 0, aujourdhui: 0 },
   commandes: {
-    total: 87,
-    aujourdhui: 3,
-    par_statut: { en_attente: 12, paye: 5, valide: 8, en_livraison: 4, livre: 55, annule: 3 },
+    total: 0,
+    aujourdhui: 0,
+    par_statut: {},
   },
-  revenus: { total: 4250000, mois: 780000 },
+  revenus: { total: 0, mois: 0 },
   produits: {
-    total: 48,
-    populaires: [
-      { nom: 'Baccarat Rouge 540', image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/49208ac133d5448789a5e132f6835933-gAIdnbHGlfd8Aam7jAxV9k0i17GzEF.jpg', total_vendu: 24 },
-      { nom: 'Santal Royal', image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/af8a8cb572b14d6a977dfeacc2edc4e6-KN2nbPkr6fVz5NTDLh9Fvf0q0CBbUw.jpg', total_vendu: 18 },
-      { nom: 'Oud Wood', image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/6ed79706949a4f3d928ac33b69c21b39-0UQ7GKGVcIAfUBe5blXhPMF5H3b5Nc.jpg', total_vendu: 15 },
-    ],
+    total: 0,
+    populaires: [],
   },
-  dernieres_commandes: [
-    { id: 87, code_secret: 'TV-A1B2C', client_id: 1, montant_total: 99000, statut: 'en_attente', mode_reception: 'retrait', created_at: new Date().toISOString(), nom_complet: 'Adjobi Kossi' },
-    { id: 86, code_secret: 'TV-D3E4F', client_id: 2, montant_total: 185000, statut: 'valide', mode_reception: 'livraison', created_at: new Date(Date.now() - 3600000).toISOString(), nom_complet: 'Fatima Diallo' },
-    { id: 85, code_secret: 'TV-G5H6I', client_id: 3, montant_total: 65000, statut: 'livre', mode_reception: 'retrait', created_at: new Date(Date.now() - 86400000).toISOString(), nom_complet: 'Mohamed Traore' },
-  ],
+  dernieres_commandes: [],
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>(DEMO_STATS)
+  const [stats, setStats] = useState<Stats>(DEFAULT_STATS)
   const [loading, setLoading] = useState(true)
-  const [offline, setOffline] = useState(false)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     api.getStats()
       .then(data => {
         if (data) setStats(data)
+        setError(false)
       })
-      .catch(() => setOffline(true))
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
 
@@ -90,12 +83,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {offline && (
+      {error && (
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
           <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold">Mode démonstration</span> — Backend PHP inaccessible.
-            Démarrez XAMPP et la base de données pour des données réelles.
+            <span className="font-semibold">Erreur de chargement</span> — Impossible de charger les statistiques.
+            Vérifiez votre connexion et réessayez.
           </div>
         </div>
       )}

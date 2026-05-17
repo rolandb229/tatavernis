@@ -54,19 +54,21 @@ export interface Client {
 export interface Commande {
   id: number
   code_secret: string
-  client_id: number
+  nom_complet: string
+  telephone: string
+  email?: string
+  adresse?: string
+  adresse_livraison?: string
+  notes?: string
   montant_total: number
   statut: 'en_attente' | 'paye' | 'valide' | 'en_livraison' | 'livre' | 'annule'
   mode_reception: 'retrait' | 'livraison'
-  adresse_livraison?: string
-  notes?: string
   transaction_id?: string
   reference_paiement?: string
   created_at: string
-  nom_complet?: string
-  telephone?: string
-  email?: string
+  updated_at?: string
   produits?: CommandeProduit[]
+  commande_produits?: CommandeProduit[]
 }
 
 export interface CommandeProduit {

@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { api, formatPrice, API_ENDPOINTS } from '@/lib/api'
+import { api, formatPrice } from '@/lib/api'
 import type { Produit, Marque, Categorie } from '@/lib/types'
 
 const EMPTY_FORM = {
@@ -108,8 +108,9 @@ export default function AdminProduitsPage() {
         if (res?.id) setProduits(prev => [{ ...payload, id: res.id } as Produit, ...prev])
       }
       setDialogOpen(false)
-    } catch {
-      alert('Erreur de sauvegarde. Vérifiez que XAMPP est actif.')
+    } catch (error) {
+      console.error('[v0] Error saving product:', error)
+      alert('Erreur de sauvegarde.')
     } finally {
       setSaving(false)
     }
@@ -131,16 +132,20 @@ export default function AdminProduitsPage() {
     if (!file) return
     setUploading(true)
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('type', 'produit')
-      const res = await fetch(API_ENDPOINTS.upload, { method: 'POST', body: fd })
-      const data = await res.json()
-      if (data?.url) setForm(f => ({ ...f, image: data.url }))
-      else if (data?.path) setForm(f => ({ ...f, image: data.path }))
+      // For now, use a URL directly - in production, use Vercel Blob or similar
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string
+        setForm(f => ({ ...f, image: dataUrl }))
+        setUploading(false)
+      }
+      reader.onerror = () => {
+        alert('Erreur lors de la lecture du fichier')
+        setUploading(false)
+      }
+      reader.readAsDataURL(file)
     } catch {
       alert('Erreur upload image.')
-    } finally {
       setUploading(false)
     }
   }

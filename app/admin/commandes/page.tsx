@@ -20,14 +20,6 @@ import {
 import { api, formatPrice, STATUT_LABELS, STATUT_COLORS } from '@/lib/api'
 import type { Commande } from '@/lib/types'
 
-const DEMO_COMMANDES: Commande[] = [
-  { id: 87, code_secret: 'TV-A1B2C', client_id: 1, montant_total: 99000, statut: 'en_attente', mode_reception: 'retrait', created_at: new Date().toISOString(), nom_complet: 'Adjobi Kossi', telephone: '+229 01 97 00 00 01' },
-  { id: 86, code_secret: 'TV-D3E4F', client_id: 2, montant_total: 185000, statut: 'valide', mode_reception: 'livraison', adresse_livraison: 'Quartier Cadjehoun, Cotonou', created_at: new Date(Date.now() - 3600000).toISOString(), nom_complet: 'Fatima Diallo', telephone: '+229 01 97 00 00 02' },
-  { id: 85, code_secret: 'TV-G5H6I', client_id: 3, montant_total: 65000, statut: 'livre', mode_reception: 'retrait', created_at: new Date(Date.now() - 86400000).toISOString(), nom_complet: 'Mohamed Traore', telephone: '+229 01 97 00 00 03' },
-  { id: 84, code_secret: 'TV-J7K8L', client_id: 4, montant_total: 250000, statut: 'en_livraison', mode_reception: 'livraison', adresse_livraison: 'Carrefour Tokpa, Cotonou', created_at: new Date(Date.now() - 172800000).toISOString(), nom_complet: 'Ama Gbèssi', telephone: '+229 01 97 00 00 04' },
-  { id: 83, code_secret: 'TV-M9N0O', client_id: 5, montant_total: 45000, statut: 'annule', mode_reception: 'retrait', created_at: new Date(Date.now() - 259200000).toISOString(), nom_complet: 'Koku Mensah', telephone: '+229 01 97 00 00 05' },
-]
-
 const STATUTS_OPTIONS = [
   { value: 'tous', label: 'Tous les statuts' },
   { value: 'en_attente', label: 'En attente' },
@@ -39,7 +31,7 @@ const STATUTS_OPTIONS = [
 ]
 
 export default function AdminCommandesPage() {
-  const [commandes, setCommandes] = useState<Commande[]>(DEMO_COMMANDES)
+  const [commandes, setCommandes] = useState<Commande[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statutFilter, setStatutFilter] = useState('tous')
@@ -50,9 +42,11 @@ export default function AdminCommandesPage() {
     api.getCommandes()
       .then(data => {
         const list = Array.isArray(data) ? data : (data?.data ?? [])
-        if (list.length > 0) setCommandes(list)
+        setCommandes(list)
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.error('[v0] Error loading orders:', error)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -73,8 +67,9 @@ export default function AdminCommandesPage() {
       await api.updateCommandeStatut(cmdId, statut)
       setCommandes(prev => prev.map(c => c.id === cmdId ? { ...c, statut: statut as Commande['statut'] } : c))
       if (selected?.id === cmdId) setSelected(prev => prev ? { ...prev, statut: statut as Commande['statut'] } : null)
-    } catch {
-      alert('Erreur lors de la mise à jour. Vérifiez que XAMPP est actif.')
+    } catch (error) {
+      console.error('[v0] Error updating order status:', error)
+      alert('Erreur lors de la mise à jour du statut.')
     } finally {
       setUpdating(null)
     }

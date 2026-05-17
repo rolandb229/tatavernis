@@ -6,7 +6,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import ProductCard from '@/components/product-card'
 import { Produit, Marque } from '@/lib/types'
-import { API_ENDPOINTS, formatPrice } from '@/lib/api'
+import { api, formatPrice } from '@/lib/api'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -54,28 +54,29 @@ export default function BoutiquePage() {
   const [tri, setTri] = useState('populaire')
   const [filtreMobileOpen, setFiltreMobileOpen] = useState(false)
 
-  // Chargement depuis PHP si disponible
+  // Chargement depuis l'API Supabase
   useEffect(() => {
-    const loadFromPHP = async () => {
+    const loadData = async () => {
+      setLoading(true)
       try {
         const [pRes, mRes] = await Promise.all([
-          fetch(API_ENDPOINTS.produits),
-          fetch(API_ENDPOINTS.marques),
+          api.getProduits(),
+          api.getMarques(),
         ])
-        if (pRes.ok) {
-          const pData = await pRes.json()
-          if (Array.isArray(pData.data) && pData.data.length > 0) setProduits(pData.data)
-          else if (Array.isArray(pData) && pData.length > 0) setProduits(pData)
+        if (pRes?.data && Array.isArray(pRes.data) && pRes.data.length > 0) {
+          setProduits(pRes.data)
         }
-        if (mRes.ok) {
-          const mData = await mRes.json()
-          if (Array.isArray(mData) && mData.length > 0) setMarques(mData)
+        if (Array.isArray(mRes) && mRes.length > 0) {
+          setMarques(mRes)
         }
-      } catch {
-        // Silencieux: utilise les donnees de démonstration
+      } catch (error) {
+        console.error('[v0] Error loading boutique data:', error)
+        // Keep sample data as fallback
+      } finally {
+        setLoading(false)
       }
     }
-    loadFromPHP()
+    loadData()
   }, [])
 
   const produitsFiltres = useMemo(() => {

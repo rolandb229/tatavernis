@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { useCartStore, useFavoritesStore } from '@/lib/cart-store'
 import { CartDrawer } from './cart-drawer'
+import { SearchDialog } from './search-dialog'
 
 const navigation = [
   { name: 'Accueil', href: '/' },
@@ -20,6 +21,7 @@ const navigation = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const { getItemCount, openCart } = useCartStore()
   const { favorites } = useFavoritesStore()
   const itemCount = getItemCount()
@@ -55,12 +57,15 @@ export function Header() {
         {/* Actions */}
         <div className="flex items-center gap-4">
           {/* Search */}
-          <Link href="/boutique" className="hidden sm:block">
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Rechercher</span>
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hidden sm:flex hover:bg-primary/10"
+            onClick={() => setSearchOpen(true)}
+          >
+            <Search className="h-5 w-5" />
+            <span className="sr-only">Rechercher</span>
+          </Button>
 
           {/* Favorites */}
           <Link href="/favoris" className="hidden sm:block relative">
@@ -153,6 +158,9 @@ export function Header() {
 
       {/* Cart Drawer */}
       <CartDrawer />
+
+      {/* Search Dialog */}
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   )
 }
